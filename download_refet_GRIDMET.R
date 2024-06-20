@@ -9,6 +9,8 @@
 # (.tif). In the next step, we will extract each daily raster to get 
 #  daily rasters of reference ET for each day of the year. 
 
+# modify code
+
 library(downloader)
 
 downloader::download(
