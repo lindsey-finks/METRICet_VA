@@ -3,10 +3,10 @@ library(sf)
 
 #setting working directory 
 # all files of the same ID should be located in this directory:
-setwd("C:/etdata1435")
+setwd("D:/et014034")
 
 #list all tif files
-filelist<-Sys.glob('*C2.tif')
+filelist<-Sys.glob('*ETa.tif')
 
 #use the first image as reference
 ref<-rast(filelist[1])
