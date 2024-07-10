@@ -10,3 +10,146 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Load libraries
+```{r}
+#| warning: false
+
+# You might need to install some of these
+
+# data manipulation
+library(tidyverse) 
+library(lubridate)
+library(ggpmisc)
+
+#plotting
+library(ggplot2)
+library(RColorBrewer)
+library(patchwork)
+
+#mapping / working with geospatial data
+library(sf)
+library(tmap)
+library(mapview)
+library(raster)
+library(exactextractr)
+
+tmap_mode("plot")
+
+theme_set(theme_classic())
+```
+
+# Accessing forest land cover data
+ - The files that you will be working with are too large to host on GitHub :(
+ - We will access them via local connection. Just make sure you don't have them within the project folder when you push and it should be fine.
+
+```{r}
+# Navigate to data 
+# Change to where you will store it on your computer
+
+parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/parcel_fcover_0528.shp")
+
+# Renaming the column names as they're reading in weird:
+parcel_shp <- parcel_shp |> 
+  rename("LOCALITY" = LOCALIT,
+         "DIVISION" = DIVISIO,
+         "PROVINCE" = PROVINC,
+         "ID" = VGIN_QP, 
+         "mixed_area" = mixed_r,
+         "totalf_area" =totlf_r,
+         "totalf" = ttl_frs)
+
+parcel_df <- as.data.frame(parcel_shp)
+
+head(parcel_df)
+```
+
+This data consists of 17,140 landowner parcels where at least 90% of their land is identified as forest landcover using the NLCD 2019 data. 
+I have summarized this data by three forest land cover types: deciduous, evergreen and mixed. They also include landowner information such
+as the county and the physiographic region.
+
+# Mapping in R
+  There are two main packages I like to use for mapping and geospatial data visualization. One is called "mapview" and is an interactive map frame for viewing data.
+  The other is called "tmap" and it is how you can create static maps. 
+  
+Good tutorials: https://bookdown.org/nicohahn/making_maps_with_r5/docs/mapview.html
+https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
+
+```{r}
+# Load in physiographic province shapefiles:
+region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
+
+mapview(region, zcol = "PROVINCE") 
+```
+
+Example in Tmap:
+
+```{r}
+tm_shape(region) +
+  tm_polygons("PROVINCE") +
+  tm_layout(legend.position = c("left", "TOP"))
+```
+
+# Data manipulation
+
+```{r}
+# Shapefiles work similarly to dataframes. Most operations you can apply to them.
+
+# filter function:
+CP_parcels <- filter(parcel_df, PROVINCE == "COASTAL PLAIN")
+
+# summarize function:
+summarise(CP_parcels, mean_area = mean(totalf_area))
+```
+
+# Simple plotting using ggplot and using pipes:
+
+```{r}
+parcel_df |> 
+  ggplot(aes(x = PROVINCE, y = mean(Acres), fill = PROVINCE)) +
+  geom_bar(stat = "identity") +
+  theme_bw()
+  
+```
+
+TASK 1:
+ - Use the mutate() function to create a new column called sq_km to convert the area from acres to square kilometers.
+ 
+```{r}
+
+```
+
+TASK 2:
+ - Use the pivot_longer() function to create 2 new tables:
+         - percentage_long: use the decid, evergreen, mixed columns, make the names of columns "forest_type" and values "forest_percentage".
+          - area_long: use the decid_area, eg_area, mixed_area columns, make the names of the columns "forest_type" and value "f_area" (in sqkm)
+          
+https://tidyr.tidyverse.org/reference/pivot_longer.html
+ 
+```{r}
+
+```
+
+TASK 3:
+ - Create a box plot using forest percentages columns (decid, evergreen, mixed) to show total forest for each region (PROVINCE column) 
+
+```{r}
+colors_plots <- c("#192819", "#2c4928", "#2e6409", "#719b25", "#cbe368")
+
+# Create the stacked bar plot
+ggplot(parcel_long, aes(x = fortype_area, y = f_area, fill = PROVINCE)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Forest Area by Forest Type per Region",
+       y = "Total Forest Area",
+       fill = "Region") +
+  theme_minimal() +
+  scale_fill_manual(values = colors_plots)
+
+ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Forest Area by Forest Type per Region",
+       y = "Total Forest Area",
+       fill = "Region") +
+  theme_minimal() +
+  scale_fill_manual(values = colors_plots)
+```
+
