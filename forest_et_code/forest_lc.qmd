@@ -46,7 +46,7 @@ theme_set(theme_classic())
 # Navigate to data 
 # Change to where you will store it on your computer
 
-parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/parcel_fcover_0528.shp")
+parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Renaming the column names as they're reading in weird:
 parcel_shp <- parcel_shp |> 
@@ -76,7 +76,7 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
+region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 mapview(region, zcol = "PROVINCE") 
 ```
@@ -115,7 +115,9 @@ TASK 1:
  - Use the mutate() function to create a new column called sq_km to convert the area from acres to square kilometers.
  
 ```{r}
-
+library(dplyr)
+parcel_df <- parcel_df %>%
+  mutate(sq_km = Acres * 0.00404686)
 ```
 
 TASK 2:
@@ -126,13 +128,43 @@ TASK 2:
 https://tidyr.tidyverse.org/reference/pivot_longer.html
  
 ```{r}
+percentage_long <- parcel_df %>%
+  pivot_longer(cols = c(decid, evergrn, mixed), 
+               names_to = "forest_type", 
+               values_to = "forest_percentage")
 
+area_long <- parcel_df %>%
+  pivot_longer(cols = c(decid_r, eg_area, mixed_area), 
+               names_to = "forest_type", 
+               values_to = "f_area")
 ```
 
 TASK 3:
  - Create a box plot using forest percentages columns (decid, evergreen, mixed) to show total forest for each region (PROVINCE column) 
 
 ```{r}
+forest_long <- parcel_df %>%
+  pivot_longer(cols = c(decid, evergrn, mixed), 
+               names_to = "forest_type", 
+               values_to = "forest_percentage")
+# Define custom colors for the plot
+colors_plots <- c("#192819", "#2c4928", "#2e6409", "#719b25", "#cbe368")
+
+# Create the box plot
+plot <- ggplot(forest_long, aes(x = forest_type, y = forest_percentage, fill = PROVINCE)) +
+  geom_boxplot() +
+  labs(title = "Forest Percentages by Forest Type per Region",
+       x = "Forest Type",
+       y = "Forest Percentage",
+       fill = "Region") +
+  theme_minimal() +
+  scale_fill_manual(values = colors_plots) +
+  facet_wrap("PROVINCE")
+print(plot)
+
+
+
+
 colors_plots <- c("#192819", "#2c4928", "#2e6409", "#719b25", "#cbe368")
 
 # Create the stacked bar plot
