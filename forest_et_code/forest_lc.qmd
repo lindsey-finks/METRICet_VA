@@ -20,6 +20,7 @@ Load libraries
 library(tidyverse) 
 library(lubridate)
 library(ggpmisc)
+library(terra)
 
 #plotting
 library(ggplot2)
@@ -32,6 +33,8 @@ library(tmap)
 library(mapview)
 library(raster)
 library(exactextractr)
+library(FedData)
+library(rasterVis)
 
 tmap_mode("plot")
 
@@ -46,7 +49,13 @@ theme_set(theme_classic())
 # Navigate to data 
 # Change to where you will store it on your computer
 
-parcel_shp <- st_read("C:/ET Data/forest_et_data")
+# Will file path
+# Uncomment this when you are ready to run yours. 
+#parcel_shp <- st_read("C:/ET Data/forest_et_data")
+
+# Lindsey file path
+# comment this out when you are ready to run yours.
+parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
 
 # Renaming the column names as they're reading in weird:
 parcel_shp <- parcel_shp |> 
@@ -76,7 +85,10 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+
+# Lindsey file path:
+region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
 
 mapview(region, zcol = "PROVINCE") 
 ```
@@ -183,5 +195,155 @@ ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
        fill = "Region") +
   theme_minimal() +
   scale_fill_manual(values = colors_plots)
+```
+
+TASK 4: Pulling in NLCD data and cropping to state boundary
+
+ - I recommend you put the NLCD data in your "forest_et" folder. It will make your life easier.
+ 
+ - I have given you code to crop and clean the 2019 land cover code. It should work as long as you change the file names to where your data is. Following the workflow for the 2019 LC, create two more cropped land cover objects called LC_16c and LC_13c
+
+```{r}
+# Dissolve region shapefile to make state boundary:
+VA <- st_union(region, by_feature = FALSE)
+
+mapview(VA)
+
+# Load in LC using rast function
+# Change this to where your LC data is
+# Repeat these step for years 2016 and 2013:
+LC_19 <- rast("C:/Users/lfink/Desktop/grad school/research data/landcover/land_use_land_cover/nlcd_va_utm17.tif")
+
+# Check coordinate referrence system (CRS) of both datasets
+crs_VA <- st_crs(VA)
+crs_LC_19 <- crs(LC_19)
+
+# If CRS do not match, transform the vector data to the CRS of the raster data
+if (crs_VA != crs_LC_19) {
+  VA <- st_transform(VA, crs_LC_19)
+}
+
+# Crop the landcover by the VA shapefile
+LC_19c <- crop(LC_19, VA, ext=FALSE)
+
+# You can check by plotting both:
+plot(LC_19c)
+plot(VA, add = TRUE, border = "black", lwd = 3)
+
+# Follow steps to do the same for 2016 and 2013 land cover:
+
+```
+
+# Land Cover Classes
+Land cover is different from the ET rasters we have been downloading and working with. The LC data is called a categorical raster, where each value has an associated land cover class.
+
+ - For right now, we want to use the three forest cover types:
+  -   41: Deciduous Forest
+  -   42: Evergreen Forest
+  -   43: Mixed Forest
+
+```{r}
+legend <- pal_nlcd()
+legend
+```
+
+TASK 5: Zonal statistics of parcel shapefiles
+
+We will use the "exactextractr" package to create zonal statistics for multiple land cover classes for our three years of land cover. In this case, our zonal statistics will be an area-weighted mean of the pixels per parcel. 
+
+ - I have already provided you with the areas and percentages of three the forest classes, I would like you to calculate the forest land cover classes for 2016 and 2019.
+ - I recommend chunking this code by year, I will provide a template for you below.
+ - I also think you should do all of the parcel extractions within the same code section. 
+ 
+
+```{r}
+# Example of percentages with one land cover class:
+evergreen_pct <- exactextractr::exact_extract(
+  LC_19, parcel_shp, function(value, fraction) { 
+    100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
+
+# You will need to use the "cbind", or column bind, function to match the output to your original data table.
+# I am going to write you some code for how you should go about this:
+parcel_lc19 <- parcel_df |> 
+  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
+
+# If you want to get fancy, you can do it all in a pipe function:
+parcel_lc19 <- parcel_lc19 |> 
+  cbind(evergreen_pct) |> 
+  mutate(eg_sqkm = evergreen_pct * sq_km)
+
+
+```
+
+2016 Land cover:
+
+```{r}
+# Zonal statistics code here. Copy and modify from above
+# evergreen
+
+
+
+
+
+# deciduous
+
+
+
+
+
+# mixed
+
+
+
+
+
+
+# bind into one table, parcel_lc16:
+
+
+
+
+
+```
+
+2013 land cover
+
+```{r}
+# Zonal statistics code here. Copy and modify from above
+# evergreen
+
+
+
+
+
+# deciduous
+
+
+
+
+
+# mixed
+
+
+
+
+
+
+# bind into one table, parcel_lc13:
+
+
+
+
+
+```
+
+TASK 6: Binding all forest cover classes into one table:
+
+  Now, you should have three different tables with the three land cover classes (percentages and area) for each. We need to make one big table of all three years. Make sure you name the columns accordingly, such as "evergreen_pct16" or "mixed_sqkm_13".
+  
+```{r}
+# You can rename the columns using the rename() function, see lines 61 - 68 above for some example code.
 ```
 
