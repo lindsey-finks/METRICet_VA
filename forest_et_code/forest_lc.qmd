@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Load libraries
+
 ```{r}
 #| warning: false
 
@@ -33,7 +34,13 @@ library(tmap)
 library(mapview)
 library(raster)
 library(exactextractr)
+#install FedData
+install.packages("FedData")
 library(FedData)
+#install rasterVis
+install.packages("rasterVis")
+install.packages("lattice")
+library(lattice)
 library(rasterVis)
 
 tmap_mode("plot")
@@ -42,8 +49,12 @@ theme_set(theme_classic())
 ```
 
 # Accessing forest land cover data
- - The files that you will be working with are too large to host on GitHub :(
- - We will access them via local connection. Just make sure you don't have them within the project folder when you push and it should be fine.
+
+-   The files that you will be working with are too large to host on
+    GitHub :(
+-   We will access them via local connection. Just make sure you don't
+    have them within the project folder when you push and it should be
+    fine.
 
 ```{r}
 # Navigate to data 
@@ -51,7 +62,7 @@ theme_set(theme_classic())
 
 # Will file path
 # Uncomment this when you are ready to run yours. 
-#parcel_shp <- st_read("C:/ET Data/forest_et_data")
+parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Lindsey file path
 # comment this out when you are ready to run yours.
@@ -72,20 +83,26 @@ parcel_df <- as.data.frame(parcel_shp)
 head(parcel_df)
 ```
 
-This data consists of 17,140 landowner parcels where at least 90% of their land is identified as forest landcover using the NLCD 2019 data. 
-I have summarized this data by three forest land cover types: deciduous, evergreen and mixed. They also include landowner information such
-as the county and the physiographic region.
+This data consists of 17,140 landowner parcels where at least 90% of
+their land is identified as forest landcover using the NLCD 2019 data. I
+have summarized this data by three forest land cover types: deciduous,
+evergreen and mixed. They also include landowner information such as the
+county and the physiographic region.
 
 # Mapping in R
-  There are two main packages I like to use for mapping and geospatial data visualization. One is called "mapview" and is an interactive map frame for viewing data.
-  The other is called "tmap" and it is how you can create static maps. 
-  
-Good tutorials: https://bookdown.org/nicohahn/making_maps_with_r5/docs/mapview.html
+
+There are two main packages I like to use for mapping and geospatial
+data visualization. One is called "mapview" and is an interactive map
+frame for viewing data. The other is called "tmap" and it is how you can
+create static maps.
+
+Good tutorials:
+https://bookdown.org/nicohahn/making_maps_with_r5/docs/mapview.html
 https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 # Lindsey file path:
 region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
@@ -123,22 +140,23 @@ parcel_df |>
   
 ```
 
-TASK 1:
- - Use the mutate() function to create a new column called sq_km to convert the area from acres to square kilometers.
- 
+TASK 1: - Use the mutate() function to create a new column called sq_km
+to convert the area from acres to square kilometers.
+
 ```{r}
 library(dplyr)
 parcel_df <- parcel_df %>%
   mutate(sq_km = Acres * 0.00404686)
 ```
 
-TASK 2:
- - Use the pivot_longer() function to create 2 new tables:
-         - percentage_long: use the decid, evergreen, mixed columns, make the names of columns "forest_type" and values "forest_percentage".
-          - area_long: use the decid_area, eg_area, mixed_area columns, make the names of the columns "forest_type" and value "f_area" (in sqkm)
-          
+TASK 2: - Use the pivot_longer() function to create 2 new tables: -
+percentage_long: use the decid, evergreen, mixed columns, make the names
+of columns "forest_type" and values "forest_percentage". - area_long:
+use the decid_area, eg_area, mixed_area columns, make the names of the
+columns "forest_type" and value "f_area" (in sqkm)
+
 https://tidyr.tidyverse.org/reference/pivot_longer.html
- 
+
 ```{r}
 percentage_long <- parcel_df %>%
   pivot_longer(cols = c(decid, evergrn, mixed), 
@@ -151,8 +169,8 @@ area_long <- parcel_df %>%
                values_to = "f_area")
 ```
 
-TASK 3:
- - Create a box plot using forest percentages columns (decid, evergreen, mixed) to show total forest for each region (PROVINCE column) 
+TASK 3: - Create a box plot using forest percentages columns (decid,
+evergreen, mixed) to show total forest for each region (PROVINCE column)
 
 ```{r}
 forest_long <- parcel_df %>%
@@ -199,9 +217,13 @@ ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
 
 TASK 4: Pulling in NLCD data and cropping to state boundary
 
- - I recommend you put the NLCD data in your "forest_et" folder. It will make your life easier.
- 
- - I have given you code to crop and clean the 2019 land cover code. It should work as long as you change the file names to where your data is. Following the workflow for the 2019 LC, create two more cropped land cover objects called LC_16c and LC_13c
+-   I recommend you put the NLCD data in your "forest_et" folder. It
+    will make your life easier.
+
+-   I have given you code to crop and clean the 2019 land cover code. It
+    should work as long as you change the file names to where your data
+    is. Following the workflow for the 2019 LC, create two more cropped
+    land cover objects called LC_16c and LC_13c
 
 ```{r}
 # Dissolve region shapefile to make state boundary:
@@ -212,7 +234,7 @@ mapview(VA)
 # Load in LC using rast function
 # Change this to where your LC data is
 # Repeat these step for years 2016 and 2013:
-LC_19 <- rast("C:/Users/lfink/Desktop/grad school/research data/landcover/land_use_land_cover/nlcd_va_utm17.tif")
+LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
 
 # Check coordinate referrence system (CRS) of both datasets
 crs_VA <- st_crs(VA)
@@ -231,16 +253,55 @@ plot(LC_19c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Follow steps to do the same for 2016 and 2013 land cover:
+# Load NLCD 2016 raster
+LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+
+# Check CRS
+crs_LC_16 <- crs(LC_16)
+
+# Transform if necessary
+if (crs_VA != crs_LC_16) {
+  VA <- st_transform(VA, crs_LC_16)
+}
+
+# Crop the NLCD 2016 data by the VA shapefile
+LC_16c <- crop(LC_16, VA)
+
+# Plot to check
+plot(LC_16c)
+plot(VA, add = TRUE, border = "black", lwd = 3)
+
+# Load NLCD 2013 raster
+LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+
+# Check CRS
+crs_LC_13 <- crs(LC_13)
+
+# Transform if necessary
+if (crs_VA != crs_LC_13) {
+  VA <- st_transform(VA, crs_LC_13)
+}
+
+# Crop the NLCD 2013 data by the VA shapefile
+LC_13c <- crop(LC_13, VA)
+
+# Plot to check
+plot(LC_13c)
+plot(VA, add = TRUE, border = "black", lwd = 3)
+
 
 ```
 
 # Land Cover Classes
-Land cover is different from the ET rasters we have been downloading and working with. The LC data is called a categorical raster, where each value has an associated land cover class.
 
- - For right now, we want to use the three forest cover types:
-  -   41: Deciduous Forest
-  -   42: Evergreen Forest
-  -   43: Mixed Forest
+Land cover is different from the ET rasters we have been downloading and
+working with. The LC data is called a categorical raster, where each
+value has an associated land cover class.
+
+-   For right now, we want to use the three forest cover types:
+-   41: Deciduous Forest
+-   42: Evergreen Forest
+-   43: Mixed Forest
 
 ```{r}
 legend <- pal_nlcd()
@@ -249,30 +310,55 @@ legend
 
 TASK 5: Zonal statistics of parcel shapefiles
 
-We will use the "exactextractr" package to create zonal statistics for multiple land cover classes for our three years of land cover. In this case, our zonal statistics will be an area-weighted mean of the pixels per parcel. 
+We will use the "exactextractr" package to create zonal statistics for
+multiple land cover classes for our three years of land cover. In this
+case, our zonal statistics will be an area-weighted mean of the pixels
+per parcel.
 
- - I have already provided you with the areas and percentages of three the forest classes, I would like you to calculate the forest land cover classes for 2016 and 2019.
- - I recommend chunking this code by year, I will provide a template for you below.
- - I also think you should do all of the parcel extractions within the same code section. 
- 
+-   I have already provided you with the areas and percentages of three
+    the forest classes, I would like you to calculate the forest land
+    cover classes for 2016 and 2019.
+-   I recommend chunking this code by year, I will provide a template
+    for you below.
+-   I also think you should do all of the parcel extractions within the
+    same code section.
 
 ```{r}
 # Example of percentages with one land cover class:
-evergreen_pct <- exactextractr::exact_extract(
-  LC_19, parcel_shp, function(value, fraction) { 
-    100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+#evergreen
+#evergreen_pct19 <- exactextractr::exact_extract(
+  #LC_19, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
   }
 )
 
+
+
+#deciduous
+#deciduous_pct19 <- exactextractr::exact_extract(
+  #LC_19, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
+
+
+#mixed
+#mixed_pct19 <- exactextractr::exact_extract(
+  #LC_19, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
+
+
 # You will need to use the "cbind", or column bind, function to match the output to your original data table.
 # I am going to write you some code for how you should go about this:
-parcel_lc19 <- parcel_df |> 
-  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
+#parcel_lc19 <- parcel_df |> 
+  #dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
 
 # If you want to get fancy, you can do it all in a pipe function:
-parcel_lc19 <- parcel_lc19 |> 
-  cbind(evergreen_pct) |> 
-  mutate(eg_sqkm = evergreen_pct * sq_km)
+#parcel_lc19 <- parcel_lc19 |> 
+  #cbind(evergreen_pct) |> 
+  #mutate(eg_sqkm = evergreen_pct * sq_km)
 
 
 ```
@@ -282,26 +368,47 @@ parcel_lc19 <- parcel_lc19 |>
 ```{r}
 # Zonal statistics code here. Copy and modify from above
 # evergreen
+#evergreen_pct16 <- exactextractr::exact_extract(
+  #LC_16, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 
 # deciduous
-
+#deciduous_pct16 <- exactextractr::exact_extract(
+  #LC_16, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 # mixed
-
+#mixed_pct16 <- exactextractr::exact_extract(
+  #LC_16, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 
 # bind into one table, parcel_lc16:
+# You will need to use the "cbind", or column bind, function to match the output to your original data table.
+# I am going to write you some code for how you should go about this:
+#parcel_lc16 <- parcel_df |> 
+  #dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
 
+# If you want to get fancy, you can do it all in a pipe function:
+#parcel_lc16 <- parcel_lc16 |> 
+  #cbind(evergreen_pct) |> 
+  #mutate(eg_sqkm = evergreen_pct * sq_km)
 
 
 
@@ -313,26 +420,45 @@ parcel_lc19 <- parcel_lc19 |>
 ```{r}
 # Zonal statistics code here. Copy and modify from above
 # evergreen
-
+#evergreen_pct13 <- exactextractr::exact_extract(
+  #LC_13, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 # deciduous
-
+#deciduous_pct13 <- exactextractr::exact_extract(
+  #LC_13, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 # mixed
-
+#mixed_pct13 <- exactextractr::exact_extract(
+  #LC_13, parcel_shp, function(value, fraction) { 
+    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+  }
+)
 
 
 
 
 
 # bind into one table, parcel_lc13:
+# I am going to write you some code for how you should go about this:
+#parcel_lc13 <- parcel_df |> 
+  #dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
 
+# If you want to get fancy, you can do it all in a pipe function:
+#parcel_lc13 <- parcel_lc13 |> 
+  #cbind(evergreen_pct) |> 
+  #mutate(eg_sqkm = evergreen_pct * sq_km)
 
 
 
@@ -341,9 +467,140 @@ parcel_lc19 <- parcel_lc19 |>
 
 TASK 6: Binding all forest cover classes into one table:
 
-  Now, you should have three different tables with the three land cover classes (percentages and area) for each. We need to make one big table of all three years. Make sure you name the columns accordingly, such as "evergreen_pct16" or "mixed_sqkm_13".
-  
+Now, you should have three different tables with the three land cover
+classes (percentages and area) for each. We need to make one big table
+of all three years. Make sure you name the columns accordingly, such as
+"evergreen_pct16" or "mixed_sqkm_13".
+
 ```{r}
 # You can rename the columns using the rename() function, see lines 61 - 68 above for some example code.
-```
 
+
+library(exactextractr)
+library(dplyr)
+library(sf)
+
+
+if (!"sq_km" %in% colnames(parcel_shp)) {
+  parcel_shp <- parcel_shp %>%
+    mutate(sq_km = st_area(.) / 10^6)  # Convert from square meters to square kilometers
+}
+
+# Zonal statistics for 2019
+evergreen_pct19 <- exact_extract(LC_19, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 42], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+deciduous_pct19 <- exact_extract(LC_19, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 41], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+mixed_pct19 <- exact_extract(LC_19, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 43], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+# Combine into a single table for 2019
+parcel_lc19 <- parcel_shp %>%
+  st_drop_geometry() %>% # Drop geometry for easier manipulation
+  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE) %>%
+  mutate(
+    evergreen_pct = evergreen_pct19,
+    deciduous_pct = deciduous_pct19,
+    mixed_pct = mixed_pct19,
+    evergreen_sqkm = evergreen_pct * sq_km / 100,
+    deciduous_sqkm = deciduous_pct * sq_km / 100,
+    mixed_sqkm = mixed_pct * sq_km / 100
+  )
+
+# Zonal statistics for 2016
+evergreen_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 42], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+deciduous_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 41], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+mixed_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 43], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+# Combine into a single table for 2016
+parcel_lc16 <- parcel_shp %>%
+  st_drop_geometry() %>%
+  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE) %>%
+  mutate(
+    evergreen_pct = evergreen_pct16,
+    deciduous_pct = deciduous_pct16,
+    mixed_pct = mixed_pct16,
+    evergreen_sqkm = evergreen_pct * sq_km / 100,
+    deciduous_sqkm = deciduous_pct * sq_km / 100,
+    mixed_sqkm = mixed_pct * sq_km / 100
+  )
+
+# Zonal statistics for 2013
+evergreen_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 42], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+deciduous_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 41], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+mixed_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
+  100 * sum(fraction[value == 43], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
+})
+
+# Combine into a single table for 2013
+parcel_lc13 <- parcel_shp %>%
+  st_drop_geometry() %>%
+  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE) %>%
+  mutate(
+    evergreen_pct = evergreen_pct13,
+    deciduous_pct = deciduous_pct13,
+    mixed_pct = mixed_pct13,
+    evergreen_sqkm = evergreen_pct * sq_km / 100,
+    deciduous_sqkm = deciduous_pct * sq_km / 100,
+    mixed_sqkm = mixed_pct * sq_km / 100
+  )
+
+
+
+
+
+
+
+
+# Combine all years into one table
+forest_cover_all_years <- parcel_lc19 %>%
+  rename(
+    evergreen_pct19 = evergreen_pct,
+    deciduous_pct19 = deciduous_pct,
+    mixed_pct19 = mixed_pct,
+    evergreen_sqkm19 = evergreen_sqkm,
+    deciduous_sqkm19 = deciduous_sqkm,
+    mixed_sqkm19 = mixed_sqkm
+  ) %>%
+  left_join(parcel_lc16 %>%
+              rename(
+                evergreen_pct16 = evergreen_pct,
+                deciduous_pct16 = deciduous_pct,
+                mixed_pct16 = mixed_pct,
+                evergreen_sqkm16 = evergreen_sqkm,
+                deciduous_sqkm16 = deciduous_sqkm,
+                mixed_sqkm16 = mixed_sqkm
+              ), by = c("ID", "sq_km", "LOCALITY", "DIVISION", "PROVINCE")) %>%
+  left_join(parcel_lc13 %>%
+              rename(
+                evergreen_pct13 = evergreen_pct,
+                deciduous_pct13 = deciduous_pct,
+                mixed_pct13 = mixed_pct,
+                evergreen_sqkm13 = evergreen_sqkm,
+                deciduous_sqkm13 = deciduous_sqkm,
+                mixed_sqkm13 = mixed_sqkm
+              ), by = c("ID", "sq_km", "LOCALITY", "DIVISION", "PROVINCE"))
+
+# View the combined table
+print(forest_cover_all_years)
+
+```
