@@ -22,6 +22,7 @@ library(tidyverse)
 library(lubridate)
 library(ggpmisc)
 library(terra)
+library(units)
 
 #plotting
 library(ggplot2)
@@ -34,12 +35,11 @@ library(tmap)
 library(mapview)
 library(raster)
 library(exactextractr)
-#install FedData
-install.packages("FedData")
 library(FedData)
+
 #install rasterVis
-install.packages("rasterVis")
-install.packages("lattice")
+#install.packages("rasterVis")
+#install.packages("lattice")
 library(lattice)
 library(rasterVis)
 
@@ -62,7 +62,7 @@ theme_set(theme_classic())
 
 # Will file path
 # Uncomment this when you are ready to run yours. 
-parcel_shp <- st_read("C:/ET Data/forest_et_data")
+#parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Lindsey file path
 # comment this out when you are ready to run yours.
@@ -77,6 +77,8 @@ parcel_shp <- parcel_shp |>
          "mixed_area" = mixed_r,
          "totalf_area" =totlf_r,
          "totalf" = ttl_frs)
+
+parcel_shp <- parcel_shp |> dplyr::distinct(ID, .keep_all = TRUE)
 
 parcel_df <- as.data.frame(parcel_shp)
 
@@ -102,7 +104,7 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 # Lindsey file path:
 region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
@@ -198,13 +200,13 @@ print(plot)
 colors_plots <- c("#192819", "#2c4928", "#2e6409", "#719b25", "#cbe368")
 
 # Create the stacked bar plot
-ggplot(parcel_long, aes(x = fortype_area, y = f_area, fill = PROVINCE)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Total Forest Area by Forest Type per Region",
-       y = "Total Forest Area",
-       fill = "Region") +
-  theme_minimal() +
-  scale_fill_manual(values = colors_plots)
+# ggplot(parcel_long, aes(x = fortype_area, y = f_area, fill = PROVINCE)) +
+#   geom_bar(stat = "identity") +
+#   labs(title = "Total Forest Area by Forest Type per Region",
+#        y = "Total Forest Area",
+#        fill = "Region") +
+#   theme_minimal() +
+#   scale_fill_manual(values = colors_plots)
 
 ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
   geom_bar(stat = "identity") +
@@ -234,7 +236,8 @@ mapview(VA)
 # Load in LC using rast function
 # Change this to where your LC data is
 # Repeat these step for years 2016 and 2013:
-LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
+#LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
+LC_19 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check coordinate referrence system (CRS) of both datasets
 crs_VA <- st_crs(VA)
@@ -254,7 +257,8 @@ plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Follow steps to do the same for 2016 and 2013 land cover:
 # Load NLCD 2016 raster
-LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+#LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+LC_16 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_16 <- crs(LC_16)
@@ -272,7 +276,8 @@ plot(LC_16c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Load NLCD 2013 raster
-LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+#LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+LC_13 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_13 <- crs(LC_13)
@@ -326,26 +331,26 @@ per parcel.
 ```{r}
 # Example of percentages with one land cover class:
 #evergreen
-#evergreen_pct19 <- exactextractr::exact_extract(
-  #LC_19, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+evergreen_pct19 <- exactextractr::exact_extract(
+  LC_19, parcel_shp, function(value, fraction) { 
+    100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
   }
 )
 
 
 
 #deciduous
-#deciduous_pct19 <- exactextractr::exact_extract(
-  #LC_19, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+deciduous_pct19 <- exactextractr::exact_extract(
+  LC_19, parcel_shp, function(value, fraction) { 
+    100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
   }
 )
 
 
 #mixed
-#mixed_pct19 <- exactextractr::exact_extract(
-  #LC_19, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
+mixed_pct19 <- exactextractr::exact_extract(
+  LC_19, parcel_shp, function(value, fraction) { 
+    100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
   }
 )
 
@@ -362,110 +367,6 @@ per parcel.
 
 
 ```
-
-2016 Land cover:
-
-```{r}
-# Zonal statistics code here. Copy and modify from above
-# evergreen
-#evergreen_pct16 <- exactextractr::exact_extract(
-  #LC_16, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-
-# deciduous
-#deciduous_pct16 <- exactextractr::exact_extract(
-  #LC_16, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-# mixed
-#mixed_pct16 <- exactextractr::exact_extract(
-  #LC_16, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-
-# bind into one table, parcel_lc16:
-# You will need to use the "cbind", or column bind, function to match the output to your original data table.
-# I am going to write you some code for how you should go about this:
-#parcel_lc16 <- parcel_df |> 
-  #dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
-
-# If you want to get fancy, you can do it all in a pipe function:
-#parcel_lc16 <- parcel_lc16 |> 
-  #cbind(evergreen_pct) |> 
-  #mutate(eg_sqkm = evergreen_pct * sq_km)
-
-
-
-
-```
-
-2013 land cover
-
-```{r}
-# Zonal statistics code here. Copy and modify from above
-# evergreen
-#evergreen_pct13 <- exactextractr::exact_extract(
-  #LC_13, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 42]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-# deciduous
-#deciduous_pct13 <- exactextractr::exact_extract(
-  #LC_13, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 41]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-# mixed
-#mixed_pct13 <- exactextractr::exact_extract(
-  #LC_13, parcel_shp, function(value, fraction) { 
-    #100 * sum(fraction[value == 43]) / sum(fraction) # notice the "value == ##" you will need to change this for other land cover classes
-  }
-)
-
-
-
-
-
-# bind into one table, parcel_lc13:
-# I am going to write you some code for how you should go about this:
-#parcel_lc13 <- parcel_df |> 
-  #dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE)
-
-# If you want to get fancy, you can do it all in a pipe function:
-#parcel_lc13 <- parcel_lc13 |> 
-  #cbind(evergreen_pct) |> 
-  #mutate(eg_sqkm = evergreen_pct * sq_km)
-
-
-
-
-```
-
-TASK 6: Binding all forest cover classes into one table:
 
 Now, you should have three different tables with the three land cover
 classes (percentages and area) for each. We need to make one big table
@@ -512,6 +413,11 @@ parcel_lc19 <- parcel_shp %>%
     mixed_sqkm = mixed_pct * sq_km / 100
   )
 
+```
+
+Zonal statistics for 2016
+
+```{r}
 # Zonal statistics for 2016
 evergreen_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
   100 * sum(fraction[value == 42], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
@@ -537,7 +443,11 @@ parcel_lc16 <- parcel_shp %>%
     deciduous_sqkm = deciduous_pct * sq_km / 100,
     mixed_sqkm = mixed_pct * sq_km / 100
   )
+```
 
+Zonal statistics for 2013
+
+```{r}
 # Zonal statistics for 2013
 evergreen_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
   100 * sum(fraction[value == 42], na.rm = TRUE) / sum(fraction, na.rm = TRUE)
@@ -563,44 +473,144 @@ parcel_lc13 <- parcel_shp %>%
     deciduous_sqkm = deciduous_pct * sq_km / 100,
     mixed_sqkm = mixed_pct * sq_km / 100
   )
+```
 
+Combine all years into one table
 
+```{r}
+# Prep for combined table:
+fc_19 <- parcel_lc19 |> 
+  dplyr::select(ID, sq_km, LOCALITY, DIVISION, PROVINCE, evergreen_pct, deciduous_pct, mixed_pct, evergreen_sqkm, deciduous_sqkm, mixed_sqkm) |> 
+  rename("eg19_pct" = evergreen_pct, 
+         "decid19_pct" = deciduous_pct,
+         "mix19_pct" = mixed_pct, 
+         "eg19_sqkm" = evergreen_sqkm, 
+         "decid19_sqkm" = deciduous_sqkm,
+         "mixed19_sqkm" = mixed_sqkm)
 
+fc_19$ID <- as.character(fc_19$ID)
 
+fc_16 <- parcel_lc16 |> 
+  dplyr::select(ID, evergreen_pct, deciduous_pct, mixed_pct, evergreen_sqkm, deciduous_sqkm, mixed_sqkm) |> 
+  rename("eg16_pct" = evergreen_pct, 
+         "decid16_pct" = deciduous_pct,
+         "mix16_pct" = mixed_pct, 
+         "eg16_sqkm" = evergreen_sqkm, 
+         "decid16_sqkm" = deciduous_sqkm,
+         "mixed16_sqkm" = mixed_sqkm) 
 
+fc_16$ID <- as.character(fc_16$ID)
 
+fc_13 <- parcel_lc13 |> 
+  dplyr::select(ID, evergreen_pct, deciduous_pct, mixed_pct, evergreen_sqkm, deciduous_sqkm, mixed_sqkm) |> 
+  rename("eg13_pct" = evergreen_pct, 
+         "decid13_pct" = deciduous_pct,
+         "mix13_pct" = mixed_pct, 
+         "eg13_sqkm" = evergreen_sqkm, 
+         "decid13_sqkm" = deciduous_sqkm,
+         "mixed13_sqkm" = mixed_sqkm) 
 
+fc_13$ID <- as.character(fc_13$ID)
 
-# Combine all years into one table
-forest_cover_all_years <- parcel_lc19 %>%
-  rename(
-    evergreen_pct19 = evergreen_pct,
-    deciduous_pct19 = deciduous_pct,
-    mixed_pct19 = mixed_pct,
-    evergreen_sqkm19 = evergreen_sqkm,
-    deciduous_sqkm19 = deciduous_sqkm,
-    mixed_sqkm19 = mixed_sqkm
-  ) %>%
-  left_join(parcel_lc16 %>%
-              rename(
-                evergreen_pct16 = evergreen_pct,
-                deciduous_pct16 = deciduous_pct,
-                mixed_pct16 = mixed_pct,
-                evergreen_sqkm16 = evergreen_sqkm,
-                deciduous_sqkm16 = deciduous_sqkm,
-                mixed_sqkm16 = mixed_sqkm
-              ), by = c("ID", "sq_km", "LOCALITY", "DIVISION", "PROVINCE")) %>%
-  left_join(parcel_lc13 %>%
-              rename(
-                evergreen_pct13 = evergreen_pct,
-                deciduous_pct13 = deciduous_pct,
-                mixed_pct13 = mixed_pct,
-                evergreen_sqkm13 = evergreen_sqkm,
-                deciduous_sqkm13 = deciduous_sqkm,
-                mixed_sqkm13 = mixed_sqkm
-              ), by = c("ID", "sq_km", "LOCALITY", "DIVISION", "PROVINCE"))
+fc_all_years <- merge(fc_19, fc_16, by="ID") 
 
-# View the combined table
-print(forest_cover_all_years)
+# Check for duplicates in each table
+sum(duplicated(fc_19$ID))  
+sum(duplicated(fc_16$ID))  
+sum(duplicated(fc_13$ID))  
+
+fc_19 <- fc_19 |> dplyr::distinct(ID, .keep_all = TRUE)
+fc_16 <- fc_16 |> dplyr::distinct(ID, .keep_all = TRUE)
+fc_13 <- fc_13 |> dplyr::distinct(ID, .keep_all = TRUE)
+
+fc_all_years <- merge(fc_19, fc_16, by = "ID", all = TRUE)
+fc_all_years <- merge(fc_all_years, fc_13, by = "ID", all = TRUE)
 
 ```
+
+# Task: Zonal statistics with multiple (urban and agriculture) land cover classes
+
+Calculated for 2013. Combines all urban land cover classes and adds them to dataframe.
+Your job is to calculate for 2016, 2019 and bind to the big table calculated above.
+Please calculate percentage and sqkm (need to do 2013 sqkm)
+
+```{r}
+# Define urban land cover values
+values <- c(21, 22, 23, 24)
+
+# Calculate combined percentages through a defined function
+urban_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  
+  100 * combined_fraction / total_fraction
+})
+
+# Convert to df
+lc_all_years <- as.data.frame(urban_pct13) |> 
+  cbind(fc_all_years)
+
+# Follow this for 2016, 2019 and bind to lc_all_years table.
+# Make new columns with urban_sqkm's
+
+```
+
+# Task: Zonal Statistics for agriculture land cover:
+
+```{r}
+# Define urban land cover values
+values <- c(81, 82)
+
+# Calculate combined percentages through a defined function
+ag_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  
+  100 * combined_fraction / total_fraction
+})
+
+# Convert to df, rename cols
+lc_all_years <- as.data.frame(ag_pct13) |> 
+  cbind(lc_all_years)
+
+# Follow this for 2016, 2019 and bind to lc_all_years table.
+# Make new columns with ag_sqkm's
+
+```
+
+# Task: Make barplots of urban, ag, forest area over time:
+
+Make sure each color corresponds to the right field:
+ - Ag: blue
+ - Urban: red
+ - Total forest: green
+ 
+Show all years' data on a single plot. Once the legend is correct, remove the x-axis titles. 
+
+```{r}
+bp_colors <- c("dodgerblue2", "green4", "tomato2")
+
+lc_all_years <- lc_all_years |> 
+  mutate(urban_sqkm13 = urban_pct13*sq_km, 
+         ag_sqkm13 = ag_pct13*sq_km)
+
+lc_all_years_lng <- lc_all_years |> 
+  pivot_longer(cols = c(urban_sqkm13, ag_sqkm13, mixed13_sqkm), 
+               names_to = "LCType", 
+               values_to = "Area") 
+  
+lc_all_years_lng |> 
+  group_by(LCType) |> 
+  summarise(mean = mean(Area, na.rm = TRUE)) |> 
+  ggplot(aes(x = LCType, y = mean, fill = LCType)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "LC area",
+    y = "Units",
+    fill = "Land Cover Type"
+  ) +
+  theme_minimal()
+```
+
