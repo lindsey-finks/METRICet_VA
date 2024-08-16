@@ -594,10 +594,12 @@ bp_colors <- c("dodgerblue2", "green4", "tomato2")
 
 lc_all_years <- lc_all_years |> 
   mutate(urban_sqkm13 = urban_pct13*sq_km, 
-         ag_sqkm13 = ag_pct13*sq_km)
+         ag_sqkm13 = ag_pct13*sq_km,
+         totalf_area13 = mixed13_sqkm + decid13_sqkm + eg13_sqkm)
+# Add totalf_area19 or 16 depending on the year
 
 lc_all_years_lng <- lc_all_years |> 
-  pivot_longer(cols = c(urban_sqkm13, ag_sqkm13, mixed13_sqkm), 
+  pivot_longer(cols = c(urban_sqkm13, ag_sqkm13, totalf_area13), 
                names_to = "LCType", 
                values_to = "Area") 
   
