@@ -62,11 +62,11 @@ theme_set(theme_classic())
 
 # Will file path
 # Uncomment this when you are ready to run yours. 
-#parcel_shp <- st_read("C:/ET Data/forest_et_data")
+parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Lindsey file path
 # comment this out when you are ready to run yours.
-parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
+#parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
 
 # Renaming the column names as they're reading in weird:
 parcel_shp <- parcel_shp |> 
@@ -104,10 +104,10 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 # Lindsey file path:
-region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
+#region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
 
 mapview(region, zcol = "PROVINCE") 
 ```
@@ -236,8 +236,8 @@ mapview(VA)
 # Load in LC using rast function
 # Change this to where your LC data is
 # Repeat these step for years 2016 and 2013:
-#LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
-LC_19 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
+#LC_19 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check coordinate referrence system (CRS) of both datasets
 crs_VA <- st_crs(VA)
@@ -257,8 +257,8 @@ plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Follow steps to do the same for 2016 and 2013 land cover:
 # Load NLCD 2016 raster
-#LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
-LC_16 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+#LC_16 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_16 <- crs(LC_16)
@@ -276,8 +276,8 @@ plot(LC_16c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Load NLCD 2013 raster
-#LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
-LC_13 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+#LC_13 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_13 <- crs(LC_13)
@@ -530,9 +530,10 @@ fc_all_years <- merge(fc_all_years, fc_13, by = "ID", all = TRUE)
 
 # Task: Zonal statistics with multiple (urban and agriculture) land cover classes
 
-Calculated for 2013. Combines all urban land cover classes and adds them to dataframe.
-Your job is to calculate for 2016, 2019 and bind to the big table calculated above.
-Please calculate percentage and sqkm (need to do 2013 sqkm)
+Calculated for 2013. Combines all urban land cover classes and adds them
+to dataframe. Your job is to calculate for 2016, 2019 and bind to the
+big table calculated above. Please calculate percentage and sqkm (need
+to do 2013 sqkm)
 
 ```{r}
 # Define urban land cover values
@@ -550,6 +551,34 @@ urban_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
 # Convert to df
 lc_all_years <- as.data.frame(urban_pct13) |> 
   cbind(fc_all_years)
+
+
+#2016:
+urban_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  100 * combined_fraction / total_fraction
+})
+
+
+#2019:
+urban_pct19 <- exact_extract(LC_19, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  100 * combined_fraction / total_fraction
+})
+
+
+#convert to dfs + bind:
+lc_all_years <- fc_all_years %>%
+  mutate(
+    urban_pct13 = urban_pct13,
+    urban_sqkm13 = urban_pct13 * sq_km / 100,
+    urban_pct16 = urban_pct16,
+    urban_sqkm16 = urban_pct16 * sq_km / 100,
+    urban_pct19 = urban_pct19,
+    urban_sqkm19 = urban_pct19 * sq_km / 100
+  )
 
 # Follow this for 2016, 2019 and bind to lc_all_years table.
 # Make new columns with urban_sqkm's
@@ -575,19 +604,41 @@ ag_pct13 <- exact_extract(LC_13, parcel_shp, function(value, fraction) {
 lc_all_years <- as.data.frame(ag_pct13) |> 
   cbind(lc_all_years)
 
+#2016:
+ag_pct16 <- exact_extract(LC_16, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  100 * combined_fraction / total_fraction
+})
+
+#2019:
+ag_pct19 <- exact_extract(LC_19, parcel_shp, function(value, fraction) {
+  combined_fraction <- sum(fraction[value %in% values], na.rm = TRUE)
+  total_fraction <- sum(fraction, na.rm = TRUE)
+  100 * combined_fraction / total_fraction
+})
+
+#bind:
+lc_all_years <- lc_all_years %>%
+  mutate(
+    ag_pct13 = ag_pct13,
+    ag_sqkm13 = ag_pct13 * sq_km / 100,
+    ag_pct16 = ag_pct16,
+    ag_sqkm16 = ag_pct16 * sq_km / 100,
+    ag_pct19 = ag_pct19,
+    ag_sqkm19 = ag_pct19 * sq_km / 100
+  )
 # Follow this for 2016, 2019 and bind to lc_all_years table.
 # Make new columns with ag_sqkm's
-
 ```
 
 # Task: Make barplots of urban, ag, forest area over time:
 
-Make sure each color corresponds to the right field:
- - Ag: blue
- - Urban: red
- - Total forest: green
- 
-Show all years' data on a single plot. Once the legend is correct, remove the x-axis titles. 
+Make sure each color corresponds to the right field: - Ag: blue - Urban:
+red - Total forest: green
+
+Show all years' data on a single plot. Once the legend is correct,
+remove the x-axis titles.
 
 ```{r}
 bp_colors <- c("dodgerblue2", "green4", "tomato2")
@@ -614,5 +665,108 @@ lc_all_years_lng |>
     fill = "Land Cover Type"
   ) +
   theme_minimal()
-```
 
+
+#2016:
+#bp_colors <- c("dodgerblue2", "green4", "tomato2")
+
+#lc_all_years <- lc_all_years |> 
+  #mutate(urban_sqkm16 = urban_pct16*sq_km, 
+        # ag_sqkm16 = ag_pct16*sq_km,
+         #totalf_area16 = mixed16_sqkm + decid16_sqkm + eg16_sqkm)
+
+#lc_all_years_lng <- lc_all_years |> 
+  #pivot_longer(cols = c(urban_sqkm16, ag_sqkm16, totalf_area16), 
+               #names_to = "LCType", 
+               #values_to = "Area")
+
+#lc_all_years_lng |> 
+  #group_by(LCType) |> 
+  #summarise(mean = mean(Area, na.rm = TRUE)) |> 
+  #ggplot(aes(x = LCType, y = mean, fill = LCType)) +
+  #geom_bar(stat = "identity") +
+  #labs(
+    #title = "LC area",
+    #y = "Units",
+   # fill = "Land Cover Type"
+  #) +
+  #theme_minimal()
+
+
+#2019
+#bp_colors <- c("dodgerblue2", "green4", "tomato2")
+
+#lc_all_years <- lc_all_years |> 
+  #mutate(urban_sqkm19 = urban_pct19*sq_km, 
+         #ag_sqkm19 = ag_pct19*sq_km,
+         #totalf_area19 = mixed19_sqkm + decid19_sqkm + eg19_sqkm)
+
+#lc_all_years_lng <- lc_all_years |> 
+  #pivot_longer(cols = c(urban_sqkm19, ag_sqkm19, totalf_area19), 
+               #names_to = "LCType", 
+               #values_to = "Area")
+
+#lc_all_years_lng |> 
+  #group_by(LCType) |> 
+  #summarise(mean = mean(Area, na.rm = TRUE)) |> 
+  #ggplot(aes(x = LCType, y = mean, fill = LCType)) +
+  #geom_bar(stat = "identity") +
+  #labs(
+    #title = "LC area",
+    #y = "Units",
+    #fill = "Land Cover Type"
+  #) +
+  #theme_minimal()
+
+
+
+
+lc_all_years <- lc_all_years |> 
+  mutate(urban_sqkm13 = urban_pct13 * sq_km, 
+         ag_sqkm13 = ag_pct13 * sq_km,
+         totalf_area13 = mixed13_sqkm + decid13_sqkm + eg13_sqkm,
+         urban_sqkm16 = urban_pct16 * sq_km,
+         ag_sqkm16 = ag_pct16 * sq_km,
+         totalf_area16 = mixed16_sqkm + decid16_sqkm + eg16_sqkm,
+         urban_sqkm19 = urban_pct19 * sq_km,
+         ag_sqkm19 = ag_pct19 * sq_km,
+         totalf_area19 = mixed19_sqkm + decid19_sqkm + eg19_sqkm)
+
+
+lc_all_years_lng <- lc_all_years |> 
+  pivot_longer(cols = c(urban_sqkm13, ag_sqkm13, totalf_area13, 
+                        urban_sqkm16, ag_sqkm16, totalf_area16,
+                        urban_sqkm19, ag_sqkm19, totalf_area19), 
+               names_to = "LCType", 
+               values_to = "Area") |> 
+  mutate(Year = case_when(
+    str_detect(LCType, "13") ~ 2013,
+    str_detect(LCType, "16") ~ 2016,
+    str_detect(LCType, "19") ~ 2019
+  ),
+  LCType = case_when(
+    str_detect(LCType, "urban") ~ "Urban",
+    str_detect(LCType, "ag") ~ "Agriculture",
+    str_detect(LCType, "totalf") ~ "Forest"
+  ))
+
+
+bp_colors <- c("Agriculture" = "dodgerblue2", 
+               "Forest" = "green4", 
+               "Urban" = "tomato2")
+
+lc_all_years_lng |> 
+  group_by(Year, LCType) |> 
+  summarise(mean_area = mean(Area, na.rm = TRUE)) |> 
+  ggplot(aes(x = as.factor(Year), y = mean_area, fill = LCType)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = bp_colors) +
+  labs(
+    title = "Land Cover Area Over Time",
+    y = "Area (sq km)",
+    fill = "LC Type"
+  ) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank()) 
+
+```
