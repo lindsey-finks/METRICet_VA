@@ -62,11 +62,11 @@ theme_set(theme_classic())
 
 # Will file path
 # Uncomment this when you are ready to run yours. 
-parcel_shp <- st_read("C:/ET Data/forest_et_data")
+#parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Lindsey file path
 # comment this out when you are ready to run yours.
-#parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
+parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
 
 # Renaming the column names as they're reading in weird:
 parcel_shp <- parcel_shp |> 
@@ -104,10 +104,10 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 # Lindsey file path:
-#region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
+region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
 
 mapview(region, zcol = "PROVINCE") 
 ```
@@ -208,13 +208,13 @@ colors_plots <- c("#192819", "#2c4928", "#2e6409", "#719b25", "#cbe368")
 #   theme_minimal() +
 #   scale_fill_manual(values = colors_plots)
 
-ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
-  geom_bar(stat = "identity") +
-  labs(title = "Total Forest Area by Forest Type per Region",
-       y = "Total Forest Area",
-       fill = "Region") +
-  theme_minimal() +
-  scale_fill_manual(values = colors_plots)
+# ggplot(parcel_long, aes(x = f_percentage, y = fortype, fill = PROVINCE)) +
+#   geom_bar(stat = "identity") +
+#   labs(title = "Total Forest Area by Forest Type per Region",
+#        y = "Total Forest Area",
+#        fill = "Region") +
+#   theme_minimal() +
+#   scale_fill_manual(values = colors_plots)
 ```
 
 TASK 4: Pulling in NLCD data and cropping to state boundary
@@ -236,8 +236,10 @@ mapview(VA)
 # Load in LC using rast function
 # Change this to where your LC data is
 # Repeat these step for years 2016 and 2013:
-LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
-#LC_19 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+
+#LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
+
+LC_19 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check coordinate referrence system (CRS) of both datasets
 crs_VA <- st_crs(VA)
@@ -257,8 +259,10 @@ plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Follow steps to do the same for 2016 and 2013 land cover:
 # Load NLCD 2016 raster
-LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
-#LC_16 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+#LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+#
+
+LC_16 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_16 <- crs(LC_16)
@@ -276,8 +280,9 @@ plot(LC_16c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Load NLCD 2013 raster
-LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
-#LC_13 <- rast("C:/Users/lfink/Desktop/eeflux/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+#LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+
+LC_13 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_13 <- crs(LC_13)
@@ -291,6 +296,10 @@ if (crs_VA != crs_LC_13) {
 LC_13c <- crop(LC_13, VA)
 
 # Plot to check
+```
+
+
+```{r}
 plot(LC_13c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
@@ -770,3 +779,44 @@ lc_all_years_lng |>
   theme(axis.title.x = element_blank()) 
 
 ```
+
+
+# Task: Land Change Transition Matrix
+
+```{r}
+install.packages("reshape2")
+library(reshape2)
+
+fc_all_years_lng <- fc_all_years |> 
+  mutate(urban13_sqkm = urban_pct13 * sq_km,
+         urban16_sqkm = urban_pct16 * sq_km,
+         urban19_sqkm = urban_pct19 * sq_km,
+         ag13_sqkm = ag_pct13 * sq_km,
+         ag16_sqkm = ag_pct16 * sq_km,
+         ag19_sqkm = ag_pct19 * sq_km)
+
+lc_data <- fc_all_years_lng |> 
+  dplyr::select(ends_with("_sqkm")) 
+
+lc_long <- lc_data %>%
+   pivot_longer(cols = everything(),
+              names_to = c("LandCover", "Year"),
+               names_pattern = "(\\D+)(\\d+)_sqkm",
+               values_to = "sqkm")
+
+lc_long <- lc_long %>%
+  group_by(LandCover) %>%
+  arrange(Year) %>%
+  mutate(next_sqkm = lead(sqkm)) %>%
+  filter(!is.na(next_sqkm))
+
+# Group by class -- Do for every class
+eg_transition <- lc_long %>% filter(LandCover == "eg")
+
+transition_matrix <- table(eg_transition$sqkm, eg_transition$next_sqkm)
+
+
+
+
+```
+
