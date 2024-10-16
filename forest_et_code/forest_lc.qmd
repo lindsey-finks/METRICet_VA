@@ -62,11 +62,11 @@ theme_set(theme_classic())
 
 # Will file path
 # Uncomment this when you are ready to run yours. 
-#parcel_shp <- st_read("C:/ET Data/forest_et_data")
+parcel_shp <- st_read("C:/ET Data/forest_et_data")
 
 # Lindsey file path
 # comment this out when you are ready to run yours.
-parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
+#parcel_shp <- st_read("C:/Users/lfink/Desktop/forest_et_data/")
 
 # Renaming the column names as they're reading in weird:
 parcel_shp <- parcel_shp |> 
@@ -104,10 +104,10 @@ https://bookdown.org/nicohahn/making_maps_with_r5/docs/tmap.html
 
 ```{r}
 # Load in physiographic province shapefiles:
-#region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
+region <- st_read("C:/ET Data/forest_et_data/va_physio_province.shp")
 
 # Lindsey file path:
-region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
+#region <- st_read("C:/Users/lfink/Desktop/forest_et_data/va_physio_province.shp")
 
 mapview(region, zcol = "PROVINCE") 
 ```
@@ -237,9 +237,9 @@ mapview(VA)
 # Change this to where your LC data is
 # Repeat these step for years 2016 and 2013:
 
-#LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
+LC_19 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2019_Land_Cover_L48.tiff")
 
-LC_19 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+#LC_19 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2019_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check coordinate referrence system (CRS) of both datasets
 crs_VA <- st_crs(VA)
@@ -259,10 +259,10 @@ plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Follow steps to do the same for 2016 and 2013 land cover:
 # Load NLCD 2016 raster
-#LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
+LC_16 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2016_Land_Cover_L48.tiff")
 #
 
-LC_16 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+#LC_16 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2016_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_16 <- crs(LC_16)
@@ -280,9 +280,9 @@ plot(LC_16c)
 plot(VA, add = TRUE, border = "black", lwd = 3)
 
 # Load NLCD 2013 raster
-#LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
+LC_13 <- rast("C:/ET Data/forest_et_data/landcover/NLCD_2013_Land_Cover_L48.tiff")
 
-LC_13 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
+#LC_13 <- rast("C:/Users/lfink/Desktop/forest_et_data/NLCD/NLCD_nYlVEgAiysZs27Lh21Mw/NLCD_2013_Land_Cover_L48_20210604_nYlVEgAiysZs27Lh21Mw.tiff")
 
 # Check CRS
 crs_LC_13 <- crs(LC_13)
@@ -297,7 +297,6 @@ LC_13c <- crop(LC_13, VA)
 
 # Plot to check
 ```
-
 
 ```{r}
 plot(LC_13c)
@@ -780,7 +779,6 @@ lc_all_years_lng |>
 
 ```
 
-
 # Task: Land Change Transition Matrix
 
 ```{r}
@@ -813,10 +811,23 @@ lc_long <- lc_long %>%
 # Group by class -- Do for every class
 eg_transition <- lc_long %>% filter(LandCover == "eg")
 
-transition_matrix <- table(eg_transition$sqkm, eg_transition$next_sqkm)
+decid_transition <- lc_long %>% filter(LandCover == "decid")
+
+mixed_transition <- lc_long %>% filter(LandCover == "mixed")
+
+urban_transition <- lc_long %>% filter(LandCover == "urban")
+
+ag_transition <- lc_long %>% filter(LandCover == "ag")
+
+
+transition_matrix_eg <- table(eg_transition$sqkm, eg_transition$next_sqkm)
+transition_matrix_decid <- table(decid_transition$sqkm, decid_transition$next_sqkm)
+transition_matrix_mixed <- table(mixed_transition$sqkm, mixed_transition$next_sqkm)
+transition_matrix_urban <- table(urban_transition$sqkm, urban_transition$next_sqkm)
+transition_matrix_ag <- table(ag_transition$sqkm, ag_transition$next_sqkm)
+
 
 
 
 
 ```
-
